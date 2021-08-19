@@ -1,16 +1,24 @@
+Short story:
+
+I tried to reverse-engineer the library but found endless amount of reference.
+And when I tried to trace them I end up in places like "usbCore.cpp" and things that are too deep to touch on.
+The library is otherwise structured quite badly. He could make functions called "setAxis" with a parameter indicating which axis. same with setbutton.
+I will try to make improvements and make clean-ups while reducing footprint & reduce the number of files.
+
 # Arduino Joystick Library
 
 #### Version 2.0.7
 
-This library can be used with Arduino IDE 1.6.6 (or above) to add one or more joysticks (or gamepads) to the list of HID devices an [Arduino Leonardo](https://www.arduino.cc/en/Main/ArduinoBoardLeonardo) or [Arduino Micro](https://www.arduino.cc/en/Main/ArduinoBoardMicro) (or any Arduino clone that is based on the ATmega32u4) can support. This library will also work with the [Arduino Due](https://www.arduino.cc/en/Main/ArduinoBoardDue), thanks to [@Palakis](https://github.com/Palakis). A complete list of supported boards can be found in the [Wiki](https://github.com/MHeironimus/ArduinoJoystickLibrary/wiki/Supported-Boards). This will not work with Arduino IDE 1.6.5 (or below) or with non-32u4 based Arduino devices (e.g. Arduino UNO, Arduino MEGA, etc.).
+This library can be used with Arduino IDE 1.6.6 (or above) to have an
+Arduino Leonardo, Arduino Micro (or any other board with ATmega32u4) appear to the host computer as a joystick (or gamepad).
+This library will also work with the Arduino Due, thanks to @Palakis (https://github.com/Palakis). A complete list of supported boards can be found in the . This will not work with Arduino IDE 1.6.5 (or below) or with boards without native USB support (uno, mega, nano, mkr).
 
 ## Features
 
 The joystick or gamepad can have the following features:
-- Buttons (default: 32)
+- up to 32 Buttons
 - Up to 2 Hat Switches
-- X, Y, and/or Z Axis (up to 16-bit precision)
-- X, Y, and/or Z Axis Rotation (up to 16-bit precision)
+- X, Y, and Z Axis & Rotation (up to 16-bit precision)
 - Rudder (up to 16-bit precision)
 - Throttle (up to 16-bit precision)
 - Accelerator (up to 16-bit precision)
@@ -29,49 +37,28 @@ The following instructions can be used to install the latest version of the libr
 The following example Arduino sketch files are included in this library:
 
 - `JoystickTest` - Simple test of the Joystick library. It exercises many of the Joystick library’s functions when pin A0 is grounded.
+This will be changed, where the arduino will act as a controller, but the input is randomized every second for every channel.
+
 - `MultipleJoystickTest` - Creates 4 Joysticks using the library and exercises the first 16 buttons, the X axis, and the Y axis of each joystick when pin A0 is grounded.
+this will be removed. there will be absolutely no need to create multiple joystick objects.
+
 - `JoystickButton` - Creates a Joystick and maps pin 9 to button 0 of the joystick, pin 10 to button 1, pin 11 to button 2, and pin 12 to button 3.
+This will be changed. analog pin 0123 is used for direction buttons. 7 used for button 2, 8 for button 3.
+
 - `JoystickKeyboard` - Creates a Joystick and a Keyboard. Maps pin 9 to Joystick Button 0, pin 10 to Joystick Button 1, pin 11 to Keyboard key 1, and pin 12 to Keyboard key 2.
+this will be removed.
+
 - `GamepadExample` - Creates a simple Gamepad with an Up, Down, Left, Right, and Fire button.
-- `DrivingControllerTest` - Creates a Driving Controller and tests 4 buttons, the Steering, Brake, and Accelerator when pin A0 is grounded.  
+this will be removed.
+
+- `DrivingControllerTest` - Creates a Driving Controller and tests 4 buttons, the Steering, Brake, and Accelerator when pin A0 is grounded. 
+this will be changed. a potentiometer wired to A0 is needed, and two buttons across pin 7 and 8.
+
 - `FlightControllerTest` - Creates a Flight Controller and tests 32 buttons, the X and Y axis, the Throttle, and the Rudder when pin A0 is grounded.
+this will be removed.
+
 - `HatSwitchTest` - Creates a joystick with two hat switches. Grounding pins 4 - 11 cause the hat switches to change position.  
-
-### Simple example
-
-```C++
-#include <Joystick.h>
-
-// Create the Joystick
-Joystick_ Joystick;
-
-// Constant that maps the physical pin to the joystick button.
-const int pinToButtonMap = 9;
-
-void setup() {
-	// Initialize Button Pins
-	pinMode(pinToButtonMap, INPUT_PULLUP);
-
-	// Initialize Joystick Library
-	Joystick.begin();
-}
-
-// Last state of the button
-int lastButtonState = 0;
-
-void loop() {
-
-	// Read pin values
-	int currentButtonState = !digitalRead(pinToButtonMap);
-	if (currentButtonState != lastButtonState)
-	{
-	Joystick.setButton(0, currentButtonState);
-	lastButtonState = currentButtonState;
-	}
-
-	delay(50);
-}
-```
+this ... this will stay.
 
 ## Joystick Library API
 
@@ -92,13 +79,20 @@ Constructor used to initialize and setup the Joystick. The following optional pa
 - `bool includeYAxis` - Default: `true` - Indicates if the Y Axis is available on the joystick.
 - `bool includeZAxis` - Default: `true` - Indicates if the Z Axis (in some situations this is the right X Axis) is available on the joystick.
 - `bool includeRxAxis` - Default: `true` - Indicates if the X Axis Rotation (in some situations this is the right Y Axis) is available on the joystick.
+
 - `bool includeRyAxis` - Default: `true` - Indicates if the Y Axis Rotation is available on the joystick.
 - `bool includeRzAxis` - Default: `true` - Indicates if the Z Axis Rotation is available on the joystick.
 - `bool includeRudder` - Default: `true` - Indicates if the Rudder is available on the joystick.
 - `bool includeThrottle` - Default: `true` - Indicates if the Throttle is available on the joystick.
+
 - `bool includeAccelerator` - Default: `true` - Indicates if the Accelerator is available on the joystick.
 - `bool includeBrake` - Default: `true` - Indicates if the Brake is available on the joystick.
 - `bool includeSteering` - Default: `true` - Indicates if the Steering is available on the joystick.
+
+this function will be updated. instead of passing a endless list of "includeXaxis" arguments, the user will pass a single "short", in the form of 0xIDTP 0XYZ RyzU TCBS, then two uint8_ts indicating the buttoncount and hatswitchcount.
+
+Internal cleanup:
+I will make sure that the amount of sticks configured here actually affects how the arduino will appear to the host computer.
 
 The following constants define the default values for the constructor parameters listed above:
 
@@ -109,6 +103,8 @@ The following constants define the default values for the constructor parameters
 ### Joystick.begin(bool initAutoSendState)
 
 Starts emulating a game controller connected to a computer. By default, all methods update the game controller state immediately. If `initAutoSendState` is set to `false`, the `Joystick.sendState` method must be called to update the game controller state.
+
+The entire AutoSendState function will be removed. The user can decide whether to update the state (via sendState) after each keypress or on a number-
 
 ### Joystick.end()
 
@@ -202,21 +198,30 @@ Sets the range of values that will be used for the Steering. Default: `0` to `10
 
 Sets the Steering value. See `setSteeringRange` for the range.
 
+All of the function to set range of a certain axis will be combined into one function. The function will be called "setRange" and take three parameters: the name of the axis (in the form of macros), the min and the max.
+
+All of the function to set the value of a specific axis will be combined into one function. The function will be called "setAxis" and take two parameters: the name of the axis (in the form of macros), and the value.
+
 ### Joystick.setButton(uint8_t button, uint8_t value)
 
-Sets the state (`0` or `1`) of the specified button (range: `0` - (`buttonCount - 1`)). The button is the 0-based button number (i.e. button #1 is `0`, button #2 is `1`, etc.). The value is `1` if the button is pressed and `0` if the button is released.
+Sets the state (`0` or `1`) of the specified button (range: `0` - (`buttonCount - 1`)). Button number start counting from 0. The value is `1` if the button is pressed and `0` if the button is released.
+
+This function will be changed. Rather than using 0s and 1s, macros indicating state (e.g. PRESSED, RELEASED) will be used.
 
 ### Joystick.pressButton(uint8_t button)
 
-Press the indicated button (range: `0` - (`buttonCount - 1`)). The button is the 0-based button number (i.e. button #1 is `0`, button #2 is `1`, etc.).
+Press the indicated button (range: `0` - (`buttonCount - 1`)). Button number start counting from 0. This function will be removed.
 
 ### Joystick.releaseButton(uint8_t button)
 
-Release the indicated button (range: `0` - (`buttonCount - 1`)). The button is the 0-based button number (i.e. button #1 is `0`, button #2 is `1`, etc.).
+Release the indicated button (range: `0` - (`buttonCount - 1`)). Button number start counting from 0. This function will be removed.
 
 ### Joystick.setHatSwitch(int8_t hatSwitch, int16_t value)
 
-Sets the value of the specified hat switch. The hatSwitch is 0-based (i.e. hat switch #1 is `0` and hat switch #2 is `1`). The value is from 0° to 360°, but in 45° increments. Any value less than 45° will be rounded down (i.e. 44° is rounded down to 0°, 89° is rounded down to 45°, etc.). Set the value to `JOYSTICK_HATSWITCH_RELEASE` or `-1` to release the hat switch.
+Sets the value of the specified hat switch.
+The value is from 0° to 360°, but in 45° increments. Any value less than 45° will be rounded down (i.e. 44° is rounded down to 0°, 89° is rounded down to 45°, etc.). Set the value to `JOYSTICK_HATSWITCH_RELEASE` or `-1` to release the hat switch.
+
+This function will be changed. Rather than using degrees, macros indicating direction (e.g. U,D,L,R,UL,LR,DL,DR) will be used.
 
 ### Joystick.sendState()
 
